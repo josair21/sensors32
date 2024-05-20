@@ -12,6 +12,10 @@ const sensor = (
                 values = JSON.parse(data)[0].fields
                 console.log(JSON.stringify(values));
                 document.getElementById("data").innerHTML = JSON.stringify(values);
+                if(values.sensor_1 == "ligado")
+                    document.getElementById("image").src = "/static/sensors_connected.png"
+            
+                else document.getElementById("image").src = "/static/sensors_disconnected.png"
             })
             .catch(error => console.error('There was a problem with the fetch operation:', error));
     }

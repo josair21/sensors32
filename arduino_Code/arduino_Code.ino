@@ -2,22 +2,17 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "Asterix 2";
-const char* password = "BL240774";
+const char* ssid = "PAVIC";
+const char* password = "qw2@p4v1c";
 
 // Configura la URL del servidor o la IP
-const char* serverUrl = "http://192.168.1.8:8000/devices";
+const char* serverUrl = "http://192.168.2.56:8000/devices";
 
 #define SLAVE_ADDRESS 0x55
 
 void setup() {
   Wire.begin();
   Serial.begin(115200);
-  while (!Serial)
-    ;
-  Serial.println("Iniciando I2C maestro...");
-
-
   WiFi.begin(ssid, password);
   Serial.print("Conectando a WiFi...");
   while (WiFi.status() != WL_CONNECTED) {
@@ -27,9 +22,9 @@ void setup() {
 }
 
 void loop() {
-  byte response = ACKCommand('A');
+  bool response = ACKCommand('A');
   String payload;
-  if (response != 'a') {
+  if (response == false) {
     Serial.println("Sensor desligado");
     payload = "{\"device\":\"esp32\",\"sensor_1\":\"desligado\",\"sensor_2\":\"none\",\"sensor_3\":\"none\"}";
   } else {
@@ -57,17 +52,14 @@ void loop() {
   }
 }
 
-byte ACKCommand(byte command) {
-  Wire.beginTransmission(SLAVE_ADDRESS);
-  Wire.write(command);
-  byte error = Wire.endTransmission();
-
-  if (error == 0) {
-    Wire.requestFrom(SLAVE_ADDRESS, 1);
-    if (Wire.available()) {
-      byte response = Wire.read();
-      return response;
-    }
+bool ACKCommand(byte command) {
+  byte error = 0;
+  for (int i = 0; i < 20; i++) {
+    Wire.beginTransmission(SLAVE_ADDRESS);
+    Wire.write(command);
+    error += Wire.endTransmission() ? 1 : 0;
+    delay(10);
   }
-  return 0xff;
+  Serial.println(error);
+  return error < 10;
 }
